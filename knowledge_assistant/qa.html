@@ -1,0 +1,469 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>银行知识库问答助手</title>
+<style>
+:root{--bg:#f5f7fb;--panel:#fff;--line:#e7ebf3;--text:#202943;--muted:#78839a;--brand:#4d66e8;--brand-dark:#3d53d1;--brand-soft:#eef1ff;--teal:#2f9c91;--shadow:0 12px 32px rgba(35,52,91,.08)}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;font-family:Inter,system-ui,"Microsoft YaHei",sans-serif;color:var(--text);background:var(--bg);display:flex;overflow:hidden}
+button,textarea{font:inherit}
+button{transition:background .18s,border-color .18s,transform .18s,box-shadow .18s}
+/* 侧栏 */
+aside{width:276px;flex:0 0 276px;background:#fbfcff;border-right:1px solid var(--line);display:flex;flex-direction:column;height:100vh;padding:20px 14px 14px}
+aside .brand{display:flex;align-items:center;gap:11px;padding:2px 8px 22px;font-weight:700;font-size:15px;letter-spacing:.1px}
+.brand-mark{width:38px;height:38px;flex:none;display:grid;place-items:center;border-radius:13px;color:white;background:linear-gradient(145deg,#6880f5,#435bd6);box-shadow:0 6px 14px rgba(77,102,232,.25);font-size:17px}
+.brand-copy{line-height:1.25}
+aside .brand small{display:block;font-weight:400;color:var(--muted);font-size:11px;letter-spacing:.2px;margin-top:5px}
+.newbtn{display:flex;align-items:center;justify-content:center;gap:8px;margin:0 0 22px;padding:11px 14px;border:1px solid #dce2f1;border-radius:11px;background:#fff;color:var(--brand-dark);font-size:13px;font-weight:600;cursor:pointer;box-shadow:0 2px 5px rgba(30,50,90,.025)}
+.newbtn:hover{background:var(--brand-soft);border-color:#c8d0ff;box-shadow:0 5px 14px rgba(77,102,232,.1);transform:translateY(-1px)}
+.new-plus{font-size:19px;font-weight:400;line-height:14px}
+.section-label{padding:0 10px 9px;color:#9aa3b5;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+.sessions{flex:1;overflow-y:auto;padding:0 2px 12px;scrollbar-width:thin;scrollbar-color:#dbe1ed transparent}
+.sess{padding:10px 10px;border:1px solid transparent;border-radius:10px;cursor:pointer;display:flex;gap:8px;align-items:flex-start;margin-bottom:4px;transition:background .16s,border-color .16s}
+.sess:hover{background:#f1f4fb}
+.sess.active{background:#eef1ff;border-color:#e0e5ff}
+.sess .t{flex:1;font-size:12px;font-weight:550;line-height:1.5;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.sess .d{font-size:10px;color:#9ba5b8;margin-top:4px}
+.sess .x{border:0;background:transparent;color:#9aa3ad;cursor:pointer;font-size:15px;padding:0 3px;visibility:hidden;border-radius:5px}
+.sess:hover .x{visibility:visible}
+.sess .x:hover{color:#d1322f;background:#fff0ef}
+.sidebar-note{display:flex;align-items:center;gap:8px;padding:13px 10px 3px;border-top:1px solid var(--line);font-size:11px;color:var(--muted)}
+.status-dot{width:7px;height:7px;border-radius:50%;background:#39b68b;box-shadow:0 0 0 3px #e5f6ef}
+/* 主区 */
+main{flex:1;display:flex;flex-direction:column;height:100vh;min-width:0;background:radial-gradient(ellipse at 50% 0%,#fff 0,#f8f9fd 44%,#f5f7fb 100%)}
+header{height:66px;flex:none;padding:0 30px;border-bottom:1px solid rgba(224,230,240,.8);background:rgba(255,255,255,.82);backdrop-filter:blur(12px);display:flex;align-items:center;gap:11px}
+header h1{font-size:14px;margin:0;font-weight:650;max-width:min(62vw,650px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+header .meta{font-size:11px;color:var(--muted)}
+#log{flex:1;overflow-y:auto;padding:30px 38px 38px;max-width:1040px;width:100%;margin:0 auto;scrollbar-width:thin;scrollbar-color:#dbe1ed transparent}
+.msg{margin-bottom:23px;display:flex;flex-direction:column;animation:rise .22s ease-out}
+@keyframes rise{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.msg.user{align-items:flex-end}
+.bubble{max-width:min(82%,780px);padding:14px 17px;border-radius:16px;line-height:1.8;white-space:pre-wrap;font-size:14px;letter-spacing:.05px;overflow-wrap:anywhere}
+.msg.user .bubble{background:linear-gradient(135deg,#5d76f4,#4862e4);color:#fff;border-bottom-right-radius:5px;box-shadow:0 5px 14px rgba(77,102,232,.16)}
+.msg.assistant .bubble{background:#fff;border:1px solid #e8ecf4;border-bottom-left-radius:5px;box-shadow:0 4px 16px rgba(38,53,89,.035)}
+.msg.refuse .bubble{background:#fff9f7;border:1px solid #f6ded5;color:#864d3d}
+.cites{margin-top:10px;width:min(82%,780px);background:rgba(255,255,255,.9);border:1px solid #e6eaf2;border-radius:13px;overflow:hidden;box-shadow:0 4px 14px rgba(38,53,89,.035)}
+.cites .row{padding:12px 15px;border-top:1px solid #f0f2f7;font-size:12px;line-height:1.7}
+.cites .row:first-child{border-top:0}
+.cite-head{display:flex;align-items:baseline;gap:8px}
+.cite-id{color:var(--brand);font-weight:700;background:var(--brand-soft);padding:1px 6px;border-radius:6px}
+.cite-title{font-weight:650;color:#303c59;flex:1;word-break:break-all}
+.cite-score{color:#a0a9b9;font-size:10px;font-variant-numeric:tabular-nums}
+.cite-sec{color:#68748b;margin-top:5px}
+.cite-page-link{display:inline-flex;align-items:center;gap:4px;color:var(--brand-dark);font-size:11px;font-weight:600;margin-top:4px;text-decoration:none;background:#f0f3ff;border-radius:6px;padding:3px 8px}
+.cite-page-link:hover{background:#e2e8ff;text-decoration:underline}
+.cite-snip{color:#515e74;margin-top:6px;padding-left:10px;border-left:2px solid #d8def8}
+.cite-src{color:#a2aabb;font-size:10px;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bubble p{margin:0 0 9px}
+.bubble p:last-child{margin-bottom:0}
+.bubble h4{margin:12px 0 7px;font-size:14px;color:#34415f}
+.bubble ul,.bubble ol{margin:7px 0;padding-left:22px}
+.bubble li{margin:3px 0}
+.bubble code{background:#f1f3f8;padding:2px 5px;border-radius:5px;font-size:12px;color:#46516d}
+.cite-ref{color:#425ad3;background:#eef1ff;border-radius:5px;padding:0 4px;font-size:11px;font-weight:650}
+.meta-line{font-size:10.5px;color:#9aa4b6;margin:6px 3px 0}
+.composer{flex:none;background:linear-gradient(180deg,rgba(245,247,251,0),#f5f7fb 24%);padding:12px 30px 18px}
+.composer .inner{max-width:920px;margin:0 auto;display:flex;gap:10px;align-items:flex-end;padding:8px 9px 8px 15px;background:#fff;border:1px solid #e2e7f0;border-radius:16px;box-shadow:0 8px 26px rgba(40,55,95,.08);transition:border-color .18s,box-shadow .18s}
+.composer .inner:focus-within{border-color:#adbaf9;box-shadow:0 8px 30px rgba(77,102,232,.13)}
+textarea{flex:1;min-height:40px;max-height:150px;padding:9px 2px;border:0;outline:0;background:transparent;font-size:14px;line-height:1.6;resize:vertical;font-family:inherit;color:var(--text)}
+textarea::placeholder{color:#9aa4b6}
+button.send{min-width:82px;padding:10px 17px;border:0;border-radius:11px;background:linear-gradient(135deg,#5b74f1,#435bd9);color:#fff;font-size:13px;font-weight:650;cursor:pointer;box-shadow:0 4px 9px rgba(77,102,232,.2)}
+button.send:hover{background:linear-gradient(135deg,#4c66e5,#394fc7);transform:translateY(-1px)}
+button.send:disabled{opacity:.55;cursor:default;transform:none;box-shadow:none}
+.hint{max-width:920px;margin:8px auto 0;font-size:10.5px;color:#929db1;text-align:center}
+.empty{max-width:700px;margin:clamp(52px,10vh,110px) auto 0;text-align:center;color:var(--muted);padding:0 18px}
+.empty h2{font-size:27px;letter-spacing:-.5px;color:#25304c;margin:0 0 11px;font-weight:700}
+.empty p{font-size:13px;line-height:1.9;margin:0 auto 24px;max-width:620px;color:#7c879d}
+.starter-label{font-size:10px;color:#9ba5b8;margin-bottom:11px;font-weight:700;letter-spacing:1px}
+.starter-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;max-width:590px;margin:0 auto}
+.starter{min-height:48px;text-align:left;border:1px solid #e4e8f1;border-radius:12px;background:rgba(255,255,255,.88);color:#44506a;padding:11px 14px;font:inherit;font-size:12px;cursor:pointer;box-shadow:0 3px 10px rgba(38,53,89,.025)}
+.starter:after{content:'↗';float:right;color:#9aa6c0;font-size:13px}
+.starter:hover{border-color:#cbd3ff;background:#fff;color:var(--brand-dark);box-shadow:0 6px 16px rgba(77,102,232,.09);transform:translateY(-1px)}
+.typing{font-size:13px;color:var(--muted)}
+.mobile-toggle{display:none;border:1px solid var(--line);background:#fff;color:#52617f;border-radius:9px;width:36px;height:36px;place-items:center;cursor:pointer}
+#sidebar-shade{display:none}
+@media(max-width:760px){aside{width:220px;flex-basis:220px;padding:16px 10px 12px}#log{padding:24px 20px 30px}.composer{padding:10px 16px 14px}header{padding:0 20px}}
+@media(max-width:560px){aside{position:fixed;z-index:21;left:0;top:0;bottom:0;width:min(290px,84vw);height:100dvh;transform:translateX(-105%);transition:transform .22s ease;box-shadow:none;padding:18px 13px 14px}aside.open{transform:translateX(0);box-shadow:12px 0 35px rgba(25,38,70,.18)}#sidebar-shade.active{display:block;position:fixed;z-index:20;inset:0;background:rgba(25,35,60,.24);backdrop-filter:blur(2px)}.mobile-toggle{display:grid}header{height:58px;padding:0 13px;gap:9px}header h1{font-size:13px;max-width:60vw}#log{padding:20px 14px 24px}.bubble{max-width:94%;font-size:13px;padding:12px 14px}.cites{width:94%}.composer{padding:8px 10px 12px}.composer .inner{gap:6px;padding:6px 7px 6px 12px;border-radius:14px}button.send{min-width:64px;padding:9px 12px}.empty{margin-top:7vh}.empty h2{font-size:22px}.empty p{font-size:12px}.starter-list{grid-template-columns:1fr;gap:7px}.starter{min-height:42px}}
+</style>
+
+<aside>
+  <div class="brand"><span class="brand-mark">知</span><span class="brand-copy">银行知识库问答<small>本地资料 · 可追溯引用</small></span></div>
+  <button class="newbtn" onclick="newSession()"><span class="new-plus">＋</span><span class="new-label">新对话</span></button>
+  <div class="section-label">最近对话</div>
+  <div class="sessions" id="sessions"></div>
+  <div class="sidebar-note"><span class="status-dot"></span><span>仅依据已导入资料作答</span></div>
+</aside>
+<div id="sidebar-shade" onclick="toggleSidebar(false)"></div>
+
+<main>
+  <header><button class="mobile-toggle" onclick="toggleSidebar()" aria-label="打开会话列表">☰</button><h1 id="title">新对话</h1><span class="meta" id="meta"></span></header>
+  <div id="log"></div>
+  <div class="composer">
+    <div class="inner">
+      <textarea id="q" placeholder="输入问题，Enter 发送，Shift+Enter 换行；追问可以直接说“那它和权益乘数什么关系”"></textarea>
+      <button class="send" id="send" onclick="send()">发送</button>
+    </div>
+    <div class="hint">回答只基于本地知识库；没找到依据会直接拒答，并给出引用片段供核对。</div>
+  </div>
+</main>
+
+<script>
+let current = null;          // { id, title }
+let busy = false;
+
+async function api(path, options) {
+  const response = await fetch(path, options || {});
+  if (!response.ok) throw new Error('HTTP ' + response.status);
+  return response.json();
+}
+
+function fmtTime(ts) {
+  if (!ts) return '';
+  const date = new Date(ts * 1000);
+  const now = new Date();
+  const sameDay = date.toDateString() === now.toDateString();
+  return sameDay
+    ? date.toLocaleTimeString('zh-CN', {hour: '2-digit', minute: '2-digit'})
+    : date.toLocaleDateString('zh-CN', {month: '2-digit', day: '2-digit'});
+}
+
+function el(tag, cls, text) {
+  const node = document.createElement(tag);
+  if (cls) node.className = cls;
+  if (text !== undefined) node.textContent = text;
+  return node;
+}
+
+function escapeHtml(text) {
+  return String(text).replace(/[&<>"']/g, function (ch) {
+    return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[ch];
+  });
+}
+
+function renderInline(text) {
+  return text
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/\[(\d+)\]/g, '<span class="cite-ref">[$1]</span>');
+}
+
+function renderMarkdown(text) {
+  const lines = escapeHtml(text || '').split('\n');
+  let html = '';
+  let list = null;
+  function closeList() {
+    if (list) { html += '</' + list + '>'; list = null; }
+  }
+  lines.forEach(function (raw) {
+    const line = raw.trim();
+    if (!line) { closeList(); return; }
+    let match;
+    if ((match = line.match(/^#{1,4}\s+(.*)$/))) {
+      closeList();
+      html += '<h4>' + renderInline(match[1]) + '</h4>';
+    } else if ((match = line.match(/^[-*]\s+(.*)$/))) {
+      if (list !== 'ul') { closeList(); html += '<ul>'; list = 'ul'; }
+      html += '<li>' + renderInline(match[1]) + '</li>';
+    } else if ((match = line.match(/^(\d+)[.)]\s+(.*)$/))) {
+      if (list !== 'ol') { closeList(); html += '<ol start="' + Number(match[1]) + '">'; list = 'ol'; }
+      html += '<li>' + renderInline(match[2]) + '</li>';
+    } else {
+      closeList();
+      html += '<p>' + renderInline(line) + '</p>';
+    }
+  });
+  closeList();
+  return html;
+}
+
+function renderCitations(box, citations) {
+  if (!citations || !citations.length) return;
+  const wrap = el('div', 'cites');
+  citations.forEach(function (c) {
+    const row = el('div', 'row');
+    const head = el('div', 'cite-head');
+    head.appendChild(el('span', 'cite-id', '[' + c.id + ']'));
+    head.appendChild(el('span', 'cite-title', c.title || '本地知识库'));
+    head.appendChild(el('span', 'cite-score', Number(c.score || 0).toFixed(3)));
+    row.appendChild(head);
+    const meta = [];
+    if (c.heading) meta.push(c.heading);
+    if (c.page) {
+      const pages = (c.page_end && c.page_end !== c.page) ? ('第 ' + c.page + '–' + c.page_end + ' 页') : ('第 ' + c.page + ' 页');
+      const pageLabel = c.page_estimated ? ('约' + pages) : pages;
+      if (c.pdf_url) {
+        const pageLink = el('a', 'cite-page-link', pageLabel);
+        pageLink.href = c.pdf_url;
+        pageLink.target = '_blank';
+        pageLink.rel = 'noopener noreferrer';
+        row.appendChild(pageLink);
+      } else {
+        meta.push(pageLabel);
+      }
+    }
+    if (meta.length) row.appendChild(el('div', 'cite-sec', meta.join(' · ')));
+    if (c.snippet) row.appendChild(el('div', 'cite-snip', c.snippet));
+    if (c.source_path) {
+      const src = el('div', 'cite-src', c.source_path);
+      src.title = c.source_path;
+      row.appendChild(src);
+    }
+    wrap.appendChild(row);
+  });
+  box.appendChild(wrap);
+}
+
+function addMessage(role, text, opts) {
+  opts = opts || {};
+  const row = el('div', 'msg ' + role);
+  const bubble = el('div', 'bubble');
+  if (role === 'assistant') {
+    bubble.innerHTML = renderMarkdown(text);
+  } else {
+    bubble.textContent = text;
+  }
+  row.appendChild(bubble);
+  renderCitations(row, opts.citations);
+  if (opts.meta) row.appendChild(el('div', 'meta-line', opts.meta));
+  document.getElementById('log').appendChild(row);
+  if (!opts.noScroll) row.scrollIntoView({block: 'end', behavior: 'smooth'});
+  return row;
+}
+
+function clearLog() {
+  document.getElementById('log').innerHTML = '';
+}
+
+function toggleSidebar(force) {
+  const sidebar = document.querySelector('aside');
+  const open = typeof force === 'boolean' ? force : !sidebar.classList.contains('open');
+  sidebar.classList.toggle('open', open);
+  document.getElementById('sidebar-shade').classList.toggle('active', open);
+}
+
+function renderEmpty(show) {
+  if (!show) return;
+  const box = el('div', 'empty');
+  box.appendChild(el('h2', '', '你好，想了解哪方面的知识？'));
+  box.appendChild(el('p', '', '可以直接询问银行考试相关内容，涵盖财务会计、经济金融、管理学、市场营销和法律基础。回答会根据已导入的资料生成，并附上来源引用；如果资料中没有依据，我会明确说明。'));
+  box.appendChild(el('div', 'starter-label', '试试这样提问'));
+  const starters = el('div', 'starter-list');
+  [
+    '杜邦分析法的核心公式是什么？',
+    '商业银行的主要职能有哪些？',
+    '需求价格弹性怎么理解？',
+    '行政处罚的基本原则是什么？'
+  ].forEach(function (question) {
+    const button = el('button', 'starter', question);
+    button.type = 'button';
+    button.onclick = function () {
+      const input = document.getElementById('q');
+      input.value = question;
+      input.focus();
+    };
+    starters.appendChild(button);
+  });
+  box.appendChild(starters);
+  document.getElementById('log').appendChild(box);
+}
+
+function setHeader(title, meta) {
+  document.getElementById('title').textContent = title || '新对话';
+  document.getElementById('meta').textContent = meta || '';
+}
+
+async function refreshSessions() {
+  const data = await api('/sessions');
+  const list = document.getElementById('sessions');
+  list.innerHTML = '';
+  (data.sessions || []).forEach(function (s) {
+    const item = el('div', 'sess' + (current && current.id === s.id ? ' active' : ''));
+    const text = el('div', 't');
+    text.appendChild(el('div', '', s.title || '新对话'));
+    text.appendChild(el('div', 'd', fmtTime(s.updated_at) + ' · ' + s.message_count + ' 条'));
+    const del = el('button', 'x', '×');
+    del.title = '删除该会话';
+    del.onclick = function (event) { event.stopPropagation(); removeSession(s.id); };
+    item.appendChild(text);
+    item.appendChild(del);
+    item.onclick = function () { openSession(s.id, s.title); };
+    list.appendChild(item);
+  });
+}
+
+async function newSession() {
+  // 不在“新对话”时立刻建空会话：等第一条消息再由 /chat 创建，避免侧栏堆一堆空会话
+  current = {id: null, title: '新对话'};
+  clearLog();
+  renderEmpty(true);
+  setHeader('新对话', '');
+  toggleSidebar(false);
+  await refreshSessions();
+  document.getElementById('q').focus();
+}
+
+async function openSession(sessionId, title) {
+  const data = await api('/sessions/' + encodeURIComponent(sessionId));
+  current = {id: sessionId, title: title || '对话'};
+  toggleSidebar(false);
+  clearLog();
+  setHeader(title || '对话', data.messages.length + ' 条消息');
+  data.messages.forEach(function (m) {
+    if (m.role === 'user') addMessage('user', m.content, {noScroll: true});
+    else if (m.content === '知识库中没有找到依据。') addMessage('refuse', m.content, {noScroll: true});
+    else addMessage('assistant', m.content, {citations: m.citations, noScroll: true});
+  });
+  if (!data.messages.length) renderEmpty(true);
+  const log = document.getElementById('log');
+  log.scrollTop = log.scrollHeight;
+  await refreshSessions();
+}
+
+async function removeSession(sessionId) {
+  await fetch('/sessions/' + encodeURIComponent(sessionId), {method: 'DELETE'});
+  if (current && current.id === sessionId) {
+    current = null;
+    clearLog();
+    renderEmpty(true);
+    setHeader('新对话', '');
+  }
+  await refreshSessions();
+}
+
+async function send() {
+  const input = document.getElementById('q');
+  const question = input.value.trim();
+  if (!question || busy) return;
+  if (!current) current = {id: null, title: '新对话'};
+  const requestSession = current;
+  busy = true;
+  document.getElementById('send').disabled = true;
+  document.getElementById('q').value = '';
+
+  const empty = document.querySelector('.empty');
+  if (empty) empty.remove();
+  addMessage('user', question);
+  const pending = addMessage('assistant', '正在检索并生成答案…');
+  setHeader(current && current.id ? current.title : '新对话', '正在处理…');
+
+  try {
+    const response = await fetch('/chat/stream', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({question: question, session_id: requestSession.id || null})
+    });
+    if (!response.ok || !response.body) throw new Error('HTTP ' + response.status);
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let streamedAnswer = '';
+    let data = null;
+    while (true) {
+      const part = await reader.read();
+      buffer += decoder.decode(part.value || new Uint8Array(), {stream: !part.done});
+      const events = buffer.split('\n\n');
+      buffer = events.pop();
+      for (const block of events) {
+        const line = block.split('\n').find(function (value) { return value.startsWith('data: '); });
+        if (!line) continue;
+        const event = JSON.parse(line.slice(6));
+        if (event.type === 'status') {
+          if (streamedAnswer) {
+            let note = pending.querySelector('.meta-line');
+            if (!note) { note = el('div', 'meta-line'); pending.appendChild(note); }
+            note.textContent = event.message;
+          } else {
+            pending.querySelector('.bubble').textContent = event.message;
+          }
+        } else if (event.type === 'token') {
+          if (!streamedAnswer) {
+            pending.querySelector('.bubble').textContent = '';
+            pending.appendChild(el('div', 'meta-line', '正在生成答案…'));
+          }
+          streamedAnswer += event.content;
+          pending.querySelector('.bubble').textContent = streamedAnswer;
+          document.getElementById('log').scrollTop = document.getElementById('log').scrollHeight;
+        } else if (event.type === 'done') {
+          data = event.result;
+        } else if (event.type === 'error') {
+          throw new Error(event.message || '流式请求失败');
+        }
+      }
+      if (part.done || data) break;
+    }
+    if (!data) throw new Error('流式响应意外结束');
+    pending.remove();
+    if (!requestSession.id) requestSession.id = data.session_id;
+    // 请求期间如果用户切换/删除了会话，结果留在原会话中，不混入当前页面。
+    if (current !== requestSession) return;
+    if (data.mode === 'chat') {
+      addMessage('assistant', data.answer, {meta: ''});
+    } else {
+      const meta = (data.question_used && data.question_used !== question ? '检索用问题：' + data.question_used + ' · ' : '')
+        + '最高相关度 ' + data.best_score;
+      const support = data.citation_check && data.citation_check.support_check;
+      const supportWarnings = [];
+      if (support && support.uncited_claims.length) {
+        supportWarnings.push(support.uncited_claims.length + ' 处表述缺少引用');
+      }
+      if (support && support.no_overlap_claims.length) {
+        supportWarnings.push(support.no_overlap_claims.length + ' 处表述与引用摘录无关键词重合');
+      }
+      const supportNote = supportWarnings.length
+        ? ' · ' + supportWarnings.join('；') + '，请核对原文'
+        : '';
+      const reviewNote = ' · 未启用模型依据复核，请结合引用原文核对';
+      if (data.mode === 'refuse' || data.grounded === false) {
+        addMessage('refuse', data.answer, {meta: meta + '（低于阈值 ' + data.threshold + '）'});
+      } else {
+        addMessage('assistant', data.answer, {citations: data.citations,
+          meta: meta + supportNote + reviewNote});
+      }
+    }
+    if (requestSession.title === '新对话' || !requestSession.title) requestSession.title = question;
+    setHeader(requestSession.title, '');
+    input.disabled = false;
+  } catch (error) {
+    pending.remove();
+    if (current === requestSession) addMessage('refuse', '请求失败：' + error);
+  } finally {
+    busy = false;
+    document.getElementById('send').disabled = false;
+    document.getElementById('q').disabled = false;
+    document.getElementById('q').focus();
+    await refreshSessions();
+  }
+}
+
+document.getElementById('q').addEventListener('keydown', function (event) {
+  if (event.key === 'Enter' && !event.shiftKey) {
+    event.preventDefault();
+    send();
+  }
+});
+
+(async function boot() {
+  await refreshSessions();
+  const list = (await api('/sessions')).sessions || [];
+  if (list.length) {
+    await openSession(list[0].id, list[0].title);
+  } else {
+    current = {id: null, title: '新对话'};
+    renderEmpty(true);
+    setHeader('新对话', '');
+  }
+  document.getElementById('q').focus();
+
+  // 支持 ?q=xxx 直接提问（方便分享链接和截图验证）
+  const preset = new URLSearchParams(location.search).get('q');
+  if (preset) {
+    current = {id: null, title: '新对话'};
+    setHeader('新对话', '');
+    clearLog();
+    document.getElementById('q').value = preset;
+    send();
+  }
+})();
+</script>
+</html>

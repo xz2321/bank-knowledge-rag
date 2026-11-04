@@ -1,0 +1,39 @@
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Python environments and caches
+.lc/
+.mineru/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.pyd
+
+# User documents and generated knowledge-base data
+*.pdf
+knowledge_base_output/
+mineru-output/
+mineru-test-output/
+exports/
+refs/
+tmp/
+
+# Local databases, logs, caches, and generated reports
+*.db
+*.sqlite
+*.sqlite3
+*.log
+*.pkl
+knowledge_assistant/eval/reports/
+knowledge_assistant/eval/gold.json
+knowledge_assistant/eval/REPORT.md
+
+# Local screenshots and archives
+/ui-*.png
+*.zip
+
+# This is a separate data-dashboard project, not part of the RAG app
+/dashboard/

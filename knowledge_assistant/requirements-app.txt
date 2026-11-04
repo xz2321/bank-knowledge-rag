@@ -1,0 +1,12 @@
+# Primary application environment: upload workflow, PyMuPDF routing, indexing,
+# LCEL QA, and evaluation. MinerU is installed separately in the project .mineru env.
+fastapi==0.162.0
+uvicorn==0.54.0
+python-multipart==0.0.33
+openai==3.37.0
+pymupdf==2.0
+qdrant-client==1.20.0
+jieba==0.42.1
+requests==2.34.2
+langchain-core==1.7.0
+langchain-openai==1.7.2
